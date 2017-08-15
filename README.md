@@ -1,6 +1,15 @@
 # vue-music
 
-> 音乐播放器
+> Vue2.0 音乐播放器
+> 
+
+状态管理：Vuex
+
+前端路由：Vue Router
+
+服务端通讯：axios、jsonp
+
+移动端滚动库：better-scroll
 
 ## Build Setup
 
