@@ -1,7 +1,7 @@
 import * as types from './mutation-types'
 import {playMode} from 'common/js/config'
 import {shuffle} from 'common/js/util'
-import {saveSearch, deleteSearch, clearSearch, savePlaySong} from 'common/js/cache'
+import {saveSearch, deleteSearch, clearSearch, savePlaySong, saveFavourite, deleteFavourite} from 'common/js/cache'
 
 function findIndex (list, song) {
   return list.findIndex((item) => {
@@ -34,7 +34,7 @@ export const randomPlay = function ({commit}, {list}) {
 }
 
 export const insertSong = function ({commit, state}, song) {
-  let playlist = state.playlist.slice() // slice生成副本 就不会印象到state本身的值
+  let playlist = state.playlist.slice() // slice生成副本 就不会映射到state本身的值
   let sequenceList = state.sequenceList.slice()
   let currentIndex = state.currentIndex
   // 记录当前歌曲
@@ -125,4 +125,12 @@ export const clearSearchHistory = function ({commit}) {
 
 export const savePlayHistory = function ({commit}, song) {
   commit(types.SET_PLAY_HISTORY, savePlaySong(song))
+}
+
+export const saveFavouriteList = function ({commit}, song) {
+  commit(types.SET_FAVOURITE_LIST, saveFavourite(song))
+}
+
+export const deleteFavouriteList = function ({commit}, song) {
+  commit(types.SET_FAVOURITE_LIST, deleteFavourite(song))
 }

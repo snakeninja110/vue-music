@@ -1,27 +1,29 @@
 <template>
-  <scroll class="suggest"
-  :data="result"
-  :pullUpLoad="pullUpLoadObj"
-  :pullDownRefresh="pullDownRefreshObj"
-  :beforeScroll="beforeScroll"
-  @pullingDown="onPullingDown"
-  @pullingUp="searchMore"
-  @beforeScroll="listScroll"
-  ref="suggest">
-    <ul class="suggest-list">
-      <li class="suggest-item" @click="selectItem(item)" v-for="(item, index) in result" :key="index">
-        <div class="icon">
-          <i :class="getIconCls(item)"></i>
-        </div>
-        <div class="name">
-          <p class="text" v-html="getDisplayName(item)"></p>
-        </div>
-      </li>
-    </ul>
+  <div class="suggest">
+    <scroll class="suggest-wrapper"
+    :data="result"
+    :pullUpLoad="pullUpLoadObj"
+    :pullDownRefresh="pullDownRefreshObj"
+    :beforeScroll="beforeScroll"
+    @pullingDown="onPullingDown"
+    @pullingUp="searchMore"
+    @beforeScroll="listScroll"
+    ref="suggest">
+      <ul class="suggest-list">
+        <li class="suggest-item" @click="selectItem(item)" v-for="(item, index) in result" :key="index">
+          <div class="icon">
+            <i :class="getIconCls(item)"></i>
+          </div>
+          <div class="name">
+            <p class="text" v-html="getDisplayName(item)"></p>
+          </div>
+        </li>
+      </ul>
+    </scroll>
     <div class="no-result-wrapper" v-if="!hasMore && !result.length">
       <no-result title="抱歉，暂无搜索结果"></no-result>
     </div>
-  </scroll>
+  </div>
 </template>
 
 <script>
@@ -202,44 +204,45 @@
 <style scoped lang="stylus">
   @import "~common/stylus/variable"
   @import "~common/stylus/mixin"
-
   .suggest
     height 100%
     overflow hidden
-    .top-wrapper
-      position absolute
-      top -40px
-      left 0
-      z-index 1
-      width 100%
-      height 40px
-      line-height 40px
-      text-align center
-      // background $color-dialog-background
+    .suggest-wrapper
+      height 100%
+      .top-wrapper
+        position absolute
+        top -40px
+        left 0
+        z-index 1
+        width 100%
+        height 40px
+        line-height 40px
+        text-align center
+        // background $color-dialog-background
 
-    .suggest-list
-      padding 0 30px
-      .suggest-item
-        display flex
-        align-items center
-        padding-bottom 20px
-      .icon
-        flex 0 0 30px
-        width 30px
-        [class^="icon-"]
-          font-size 14px
+      .suggest-list
+        padding 0 30px
+        .suggest-item
+          display flex
+          align-items center
+          padding-bottom 20px
+        .icon
+          flex 0 0 30px
+          width 30px
+          [class^="icon-"]
+            font-size 14px
+            color $color-text-d
+        .name
+          flex 1
+          font-size $font-size-medium
           color $color-text-d
-      .name
-        flex 1
-        font-size $font-size-medium
-        color $color-text-d
-        overflow hidden
-        .text
-          no-wrap()
+          overflow hidden
+          .text
+            no-wrap()
     .no-result-wrapper
       position absolute
       width 100%
-      // top 50%
-      // transform translateY(-50%)
+      top 50%
+      transform translateY(-50%)
 
 </style>
