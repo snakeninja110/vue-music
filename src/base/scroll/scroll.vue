@@ -7,7 +7,7 @@
             :pullUpLoad="pullUpLoad"
             :isPullUpLoad="isPullUpLoad"
       >
-        <div class="pullup-wrapper" v-if="pullUpLoad">
+        <div class="pullup-wrapper" v-if="data && data.length && pullUpLoad">
           <div class="before-trigger" v-if="!isPullUpLoad">
             <span>{{pullUpTxt}}</span>
           </div>
@@ -24,7 +24,7 @@
           :pulling="pulling"
           :bubbleY="bubbleY"
     >
-      <div ref="pulldown" class="pulldown-wrapper" :style="pullDownStyle" v-if="pullDownRefresh">
+      <div ref="pulldown" class="pulldown-wrapper" :style="pullDownStyle" v-if="data && data.length && pullDownRefresh">
         <div class="before-trigger" v-if="beforePullDown">
           <bubble :y="bubbleY"></bubble>
         </div>
@@ -263,7 +263,9 @@
 </script>
 
 <style lang="stylus">
-  // .scroll-wrapper
+  .scroll-wrapper
+    position relative
+    overflow hidden
   .pulldown-wrapper
     position absolute
     width 100%
@@ -271,6 +273,7 @@
     display flex
     justify-content center
     align-items center
+    pointer-events none // 设置点击穿透 防止挡住数据层
     transition all
     .after-trigger
       margin-top 10px
