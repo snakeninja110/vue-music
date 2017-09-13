@@ -60,7 +60,7 @@
               <i class="icon-next" @click="next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+              <i class="icon" :class="getFavouriteIcon(currentSong)" @click="toggleFavourite(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@
       </div>
     </transition>
     <playlist ref="playlist"></playlist>
-    <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
+    <audio :src="currentSong.url" ref="audio" @play="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
   </div>
 </template>
 
@@ -205,6 +205,7 @@
         }
         if (this.playlist.length === 1) {
           this.loop()
+          return
         } else {
           let index = this.currentIndex - 1
           if (index === -1) {
@@ -223,6 +224,7 @@
         }
         if (this.playlist.length === 1) {
           this.loop()
+          return
         } else {
           let index = this.currentIndex + 1
           if (index === this.playlist.length) {
@@ -280,6 +282,9 @@
       getLyric () {
         // 获取歌词并设置播放
         this.currentSong.getLyric().then((lyric) => {
+          if (this.currentSong.lyric !== lyric) {
+            return
+          }
           this.currentLyric = new Lyric(lyric, this.handleLyric)
           if (this.playing) {
             this.currentLyric.play()
@@ -334,7 +339,7 @@
         let opacity
         if (this.currentShow === 'cd') {
           // 从右向左划
-          if (this.touch.percent > 0.1) {
+          if (this.touch.percent > 0.3) {
             offsetWidth = -window.innerWidth
             opacity = 0
             this.currentShow = 'lyric'
@@ -401,7 +406,8 @@
         if (this.currentLyric) {
           this.currentLyric.stop()
         }
-        setTimeout(() => {
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => {
           this.$refs.audio.play()
           this.getLyric()
         }, 1000)
@@ -593,7 +599,7 @@
               font-size: 40px
           .i-right
             text-align: left
-          .icon-favorite
+          .icon-favourite
             color: $color-sub-theme
       &.normal-enter-active, &.normal-leave-active
         transition: all 0.4s
