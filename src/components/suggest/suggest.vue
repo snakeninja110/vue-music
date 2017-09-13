@@ -1,11 +1,11 @@
 <template>
   <scroll class="suggest"
   :data="result"
-  :pullup="pullup"
-  :pulldown="pulldown"
+  :pullUpLoad="pullUpLoadObj"
+  :pullDownRefresh="pullDownRefreshObj"
   :beforeScroll="beforeScroll"
-  @scrollToEnd="searchMore"
-  @pullToRefresh="pullToRefresh"
+  @pullingDown="onPullingDown"
+  @pullingUp="searchMore"
   @beforeScroll="listScroll"
   ref="suggest">
     <ul class="suggest-list">
@@ -17,7 +17,6 @@
           <p class="text" v-html="getDisplayName(item)"></p>
         </div>
       </li>
-      <loading v-show="hasMore" title=""></loading>
     </ul>
     <div class="no-result-wrapper" v-if="!hasMore && !result.length">
       <no-result title="抱歉，暂无搜索结果"></no-result>
@@ -43,9 +42,20 @@
       return {
         page: 1,
         result: [],
-        pullup: true,
-        pulldown: true,
         beforeScroll: true,
+        pullDownRefresh: true,
+        pullDownRefreshThreshold: 90,
+        pullDownRefreshStop: 55,
+        pullUpLoad: true,
+        pullUpLoadThreshold: 50,
+        pullUpLoadMoreTxt: '加载更多',
+        pullUpLoadNoMoreTxt: '没有更多数据了',
+        startY: 0,
+        scrollToX: 0,
+        scrollToY: -200,
+        scrollToTime: 700,
+        scrollToEasing: 'bounce',
+        scrollToEasingOptions: ['bounce', 'swipe', 'swipeBounce'],
         hasMore: true // 是否还有更多
       }
     },
@@ -57,6 +67,17 @@
       showSinger: {
         type: Boolean,
         default: true
+      }
+    },
+    computed: {
+      pullDownRefreshObj () {
+        return this.pullDownRefresh ? {
+          threshold: parseInt(this.pullDownRefreshThreshold),
+          stop: parseInt(this.pullDownRefreshStop)
+        } : false
+      },
+      pullUpLoadObj () {
+        return this.pullUpLoad ? {threshold: parseInt(this.pullUpLoadThreshold), txt: {more: this.pullUpLoadMoreTxt, noMore: this.pullUpLoadNoMoreTxt}} : false
       }
     },
     methods: {
@@ -73,6 +94,7 @@
       },
       searchMore () {
         if (!this.hasMore) {
+          this._setNoMore()
           return
         }
         this.page ++
@@ -83,12 +105,9 @@
           }
         })
       },
-      pullToRefresh () {
+      onPullingDown () {
         // 刷新事件只有在pulldown为true时才会触发
-        this.result = []
-        setTimeout(() => {
-          this.search()
-        }, 300)
+        this.search()
       },
       refresh () {
         this.$refs.suggest.refresh()
@@ -113,9 +132,16 @@
       },
       _checkMore (data) {
         const song = data.song
-        if (!song.list.length || (song.curnum + song.curpage * PER_PAGE) >= song.totalnum) {
+        const totalPage = Math.ceil(song.totalnum / PER_PAGE)
+        if (!song.list.length || totalPage <= song.curpage) {
           this.hasMore = false
+          // this.pullUpLoad = false
         }
+      },
+      _setNoMore () {
+        this.$nextTick(() => {
+          this.$refs.suggest.forceUpdate()
+        })
       },
       getIconCls (item) {
         if (item.type === TYPE_SINGER) {

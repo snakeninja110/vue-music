@@ -3,7 +3,7 @@
     <div class="slider-group" ref="sliderGroup">
       <slot></slot>
     </div>
-    <div class="dots">
+    <div class="dots" v-if="showDot">
       <span class="dot" v-for="(item, index) in dots" :key="index" :class="{active: currentPageIndex === index}"></span>
     </div>
   </div>
@@ -29,15 +29,29 @@ export default {
       type: Boolean,
       default: true
     },
+    showDot: {
+      type: Boolean,
+      default: true
+    },
     interval: {
       type: Number,
       default: 4000
+    },
+    click: {
+      type: Boolean,
+      default: true
+    },
+    allowVerticalScroll: {
+      type: Boolean,
+      default: true
     }
   },
   mounted () {
     setTimeout(() => {
       this._setSliderWidth()
-      this._initDots()
+      if (this.showDot) {
+        this._initDots()
+      }
       this._initSlider()
 
       if (this.autoPlay) {
@@ -46,14 +60,54 @@ export default {
     }, 20)
 
     window.addEventListener('resize', () => {
-      if (!this.slider) {
+      if (!this.slider || !this.slider.enabled) {
         return
       }
-      this._setSliderWidth(true)
-      this.slider.refresh()
+      clearTimeout(this.resizeTimer)
+      this.resizeTimer = setTimeout(() => {
+        if (this.slider.isInTransition) {
+          this._onScrollEnd()
+        } else {
+          if (this.autoPlay) {
+            this._play()
+          }
+        }
+      }, 60)
+      this.refresh()
     })
   },
+  activated () {
+    this.slider.enabled()
+    let pageIndex = this.slider.getCurrentPage().pageX
+    if (pageIndex > this.dots.length) {
+      pageIndex = pageIndex % this.dots.length
+    }
+    this.slider.goToPage(pageIndex, 0, 0)
+    if (this.loop) {
+      pageIndex -= 1
+    }
+    this.currentPageIndex = pageIndex
+    if (this.autoPlay) {
+      this._play()
+    }
+  },
+  deactivated () {
+    this.slider.disable()
+    clearTimeout(this.timer)
+  },
+  beforeDestroy () {
+    // 生命周期结束后清空计时器资源,有利于内存释放
+    this.slider.disable()
+    clearTimeout(this.timer)
+  },
   methods: {
+    refresh () {
+      this._setSliderWidth(true)
+      this.slider.refresh()
+    },
+    next () {
+      this.slider.next()
+    },
     _setSliderWidth (isResize) {
       this.children = this.$refs.sliderGroup.children
 
@@ -79,41 +133,51 @@ export default {
       this.slider = new BScroll(this.$refs.slider, {
         // https://github.com/ustbhuangyi/better-scroll
         scrollX: true,
-        scrollY: false,
+        eventPassthrough: this.allowVerticalScroll ? 'vertical' : 'false',
         momentum: false,
-        snap: true,
-        snapLoop: this.loop, // 设置循环滚动后会在头尾多加2个dom
-        snapThreshold: 0.3,
-        snapSpeed: 400
+        snap: {
+          loop: this.loop,
+          threshold: 0.3,
+          speed: 400
+        },
+        click: this.click
       })
 
       // 滚动完成后设置当前滚动的图片下标
-      this.slider.on('scrollEnd', () => {
-        let pageIndex = this.slider.getCurrentPage().pageX // 当前滚动到的页面下标
-        if (this.loop) {
-          pageIndex -= 1
-        }
-        this.currentPageIndex = pageIndex
+      this.slider.on('scrollEnd', this._onScrollEnd)
 
+      this.slider.on('touchend', () => {
         if (this.autoPlay) {
-          clearTimeout(this.timer)
           this._play()
         }
       })
+
+      this.slider.on('beforeScrollStart', () => {
+        if (this.autoPlay) {
+          clearTimeout(this.timer)
+        }
+      })
+    },
+    _onScrollEnd () {
+      let pageIndex = this.slider.getCurrentPage().pageX // 当前滚动到的页面下标
+      if (this.loop) {
+        pageIndex -= 1
+      }
+      this.currentPageIndex = pageIndex
+
+      if (this.autoPlay) {
+        clearTimeout(this.timer)
+        this._play()
+      }
     },
     _play () {
-      let pageIndex = this.currentPageIndex + 1
-      if (this.loop) {
-        pageIndex += 1
-      }
+      let pageIndex = this.slider.getCurrentPage().pageX + 1
+      clearTimeout(this.timer)
+
       this.timer = setTimeout(() => {
         this.slider.goToPage(pageIndex, 0, 400) // 0代表Y方向
       }, this.interval)
     }
-  },
-  destroyed () {
-    // 生命周期结束后清空计时器资源,有利于内存释放
-    clearTimeout(this.timer)
   }
 }
 </script>

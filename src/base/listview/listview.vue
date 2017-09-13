@@ -1,21 +1,26 @@
 <template>
-  <scroll class="listview"
+  <div class="listview">
+    <scroll class="list-wrapper"
     :data="data"
     :listenScroll="listenScroll"
     :probeType = "probeType"
     ref="listview"
     @scroll="scroll">
-    <ul>
-      <li class="list-group" v-for="(group, index) in data" :key="index" ref="listGroup">
-        <h2 class="list-group-title">{{group.title}}</h2>
-        <ul>
-          <li @click="selectItem(item)" class="list-group-item" v-for="(item, index) in group.items" :key="index">
-            <img class="avatar" v-lazy="item.avatar">
-            <span class="name">{{item.name}}</span>
-          </li>
-        </ul>
-      </li>
-    </ul>
+      <ul>
+        <li class="list-group" v-for="(group, index) in data" :key="index" ref="listGroup">
+          <h2 class="list-group-title">{{group.title}}</h2>
+          <ul>
+            <li @click="selectItem(item)" class="list-group-item" v-for="(item, index) in group.items" :key="index">
+              <img class="avatar" v-lazy="item.avatar">
+              <span class="name">{{item.name}}</span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <div class="loading-container" v-show="!data.length">
+        <loading></loading>
+      </div>
+    </scroll>
     <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove.stop.prevent="onShortcutTouchMove">
       <ul>
         <li class="item" :class="{'current': currentIndex===index}" v-for="(item, index) in shortcutList" :data-index="index" :key="index">
@@ -26,10 +31,7 @@
     <div class="list-fixed" v-show="fixedTitle" ref="fixed">
       <h1 class="fixed-title">{{fixedTitle}}</h1>
     </div>
-    <div class="loading-container" v-show="!data.length">
-      <loading></loading>
-    </div>
-  </scroll>
+  </div>
 </template>
 
 <script>
@@ -180,6 +182,13 @@
     height 100%
     overflow hidden
     background $color-background
+    .list-wrapper
+      position absolute
+      left 0
+      right 0
+      top 0
+      bottom 0
+      overflow hidden
     .list-group
       padding-bottom 30px
       .list-group-title
